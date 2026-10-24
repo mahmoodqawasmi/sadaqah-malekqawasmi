@@ -439,6 +439,25 @@
     <script>
         lucide.createIcons();
 
+        // تخزين آمن: لا يتعطل الموقع إذا منع المتصفح التخزين المحلي.
+        function safeStorageGet(key, fallback = null) {
+            try {
+                const value = window.localStorage.getItem(key);
+                return value === null ? fallback : value;
+            } catch (error) {
+                return fallback;
+            }
+        }
+
+        function safeStorageSet(key, value) {
+            try {
+                window.localStorage.setItem(key, String(value));
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
         // ========== دوال المشاركة ==========
         function getShareText() {
             return encodeURIComponent(
@@ -587,11 +606,11 @@
         }
 
         function isVisitorRegistered() {
-            return localStorage.getItem(VISITOR_FLAG_KEY) === 'true';
+            return safeStorageGet(VISITOR_FLAG_KEY) === 'true';
         }
 
         function markVisitorRegistered() {
-            localStorage.setItem(VISITOR_FLAG_KEY, 'true');
+            safeStorageSet(VISITOR_FLAG_KEY, 'true');
         }
 
         // ✅ إرسال دعاء — استجابة فورية لكلا العدادين
@@ -669,12 +688,12 @@
         });
 
         // ========== عداد الفاتحة المحلي ==========
-        let counter = parseInt(localStorage.getItem('fatiha_counter') || '0');
+        let counter = parseInt(safeStorageGet('fatiha_counter') || '0');
         const counterEl = document.getElementById('counterDisplay');
 
         function updateCounter() {
             counterEl.textContent = counter.toLocaleString('ar-EG');
-            localStorage.setItem('fatiha_counter', counter);
+            safeStorageSet('fatiha_counter', counter);
             counterEl.style.transform = 'scale(1.1)';
             setTimeout(() => counterEl.style.transform = 'scale(1)', 150);
         }
