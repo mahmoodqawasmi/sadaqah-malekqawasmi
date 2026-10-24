@@ -108,6 +108,20 @@
         #copyToast {
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
+
+        .stats-divider {
+            width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(167, 212, 210, 0.4), transparent);
+        }
+
+        .duaa-success {
+            background-color: #2e7d32 !important;
+            transform: scale(0.98);
+        }
+
+        .counter-value {
+            transition: opacity 0.15s ease;
+        }
     </style>
 </head>
 <body class="islamic-pattern text-calm-deep">
@@ -127,6 +141,7 @@
                         src="malek.png"
                         alt="صورة الشهيد مالك نضال القواسمي"
                         class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover ring-4 ring-calm-teal-light/60 shadow-xl shadow-calm-teal-dark/20"
+                        loading="eager"
                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22 viewBox=%220 0 160 160%22%3E%3Crect width=%22160%22 height=%22160%22 fill=%22%23e8f2f1%22/%3E%3Ccircle cx=%2280%22 cy=%2260%22 r=%2225%22 fill=%22%23a7d4d2%22/%3E%3Cellipse cx=%2280%22 cy=%22120%22 rx=%2240%22 ry=%2235%22 fill=%22%23a7d4d2%22/%3E%3C/svg%3E'"
                     >
                 </div>
@@ -164,7 +179,6 @@
                 <button onclick="scrollToSection('duaa')" class="float-btn bg-calm-teal-dark hover:bg-calm-deep text-white px-6 py-3 rounded-full font-semibold shadow-lg flex items-center gap-2">
                     <i data-lucide="hand-heart" class="w-5 h-5"></i> ادعُ له
                 </button>
-                <!-- ✅ تم حذف الأيقونة المجاورة لهذا الزر -->
                 <button onclick="scrollToSection('counter')" class="float-btn bg-white hover:bg-calm-sand text-calm-teal-dark px-6 py-3 rounded-full font-semibold shadow-lg border border-calm-teal-light">
                     اقرأ الفاتحة
                 </button>
@@ -190,18 +204,34 @@
             <p class="text-calm-deep/60">كل دعوة صدقة، وكل مشاركة أجر</p>
         </div>
 
+        <!-- العدادان -->
         <div class="bg-gradient-to-br from-calm-teal-dark to-calm-deep rounded-3xl p-8 md:p-10 text-center text-white shadow-2xl mb-10 relative overflow-hidden">
             <div class="absolute inset-0 pointer-events-none">
                 <div class="absolute top-0 right-0 w-48 h-48 rounded-full bg-white/5 blur-2xl"></div>
                 <div class="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-calm-teal/10 blur-2xl"></div>
             </div>
             <div class="relative">
-                <div class="flex justify-center mb-3">
+                <div class="flex justify-center mb-6">
                     <i data-lucide="users" class="w-8 h-8 text-calm-teal-light"></i>
                 </div>
-                <p class="text-calm-teal-light text-lg mb-2">شارك في الدعاء حتى الآن</p>
-                <div class="text-6xl md:text-7xl font-bold mb-2" id="globalDuaaCount">—</div>
-                <p class="text-calm-teal-light text-lg">شخص</p>
+
+                <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 mb-6">
+                    <div class="flex-1 w-full md:w-auto">
+                        <div class="text-5xl md:text-6xl font-bold mb-2 counter-value" id="uniqueVisitorsCount">—</div>
+                        <p class="text-calm-teal-light text-base md:text-lg">شخصاً</p>
+                        <p class="text-xs text-white/50 mt-1">شاركوا بالدعاء</p>
+                    </div>
+
+                    <div class="hidden md:block stats-divider h-20"></div>
+                    <div class="block md:hidden w-32 h-px bg-white/20"></div>
+
+                    <div class="flex-1 w-full md:w-auto">
+                        <div class="text-5xl md:text-6xl font-bold mb-2 counter-value" id="totalDuaaCount">—</div>
+                        <p class="text-calm-teal-light text-base md:text-lg">دعوة</p>
+                        <p class="text-xs text-white/50 mt-1">مجموع الدعوات</p>
+                    </div>
+                </div>
+
                 <p class="text-xs text-white/50 mt-4 flex items-center justify-center gap-1">
                     <i data-lucide="globe" class="w-3 h-3"></i>
                     عداد عام لحظي — يراه كل الزوار
@@ -217,7 +247,7 @@
         </div>
 
         <div class="text-center">
-            <button id="duaaBtn" onclick="sendDuaa()" class="float-btn bg-calm-teal-dark hover:bg-calm-deep text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl flex items-center gap-3 mx-auto disabled:opacity-60 disabled:cursor-not-allowed">
+            <button id="duaaBtn" onclick="sendDuaa()" class="float-btn bg-calm-teal-dark hover:bg-calm-deep text-white px-10 py-4 rounded-full font-bold text-lg shadow-xl flex items-center gap-3 mx-auto disabled:opacity-90 disabled:cursor-not-allowed">
                 <i data-lucide="hand-heart" class="w-6 h-6"></i>
                 <span id="duaaBtnText">ادعُ له الآن</span>
             </button>
@@ -465,15 +495,25 @@
             }, 2500);
         }
 
-        // ========== العداد العام للدعاء (Abacus API) ==========
-        const ABACUS_NAMESPACE = 'sadaqah-jariya';
-        const ABACUS_KEY = 'duaa-count';
+        // ========== العدادات ==========
         const ABACUS_BASE = 'https://abacus.jasoncameron.dev';
+        const ABACUS_NAMESPACE = 'sadaqah-jariya';
+        const VISITORS_KEY = 'unique-visitors-v1';
+        const DUAA_KEY = 'total-duaa-v1';
+        const VISITOR_FLAG_KEY = 'duaa_visitor_registered_v1';
 
-        const globalCountEl = document.getElementById('globalDuaaCount');
+        const uniqueVisitorsEl = document.getElementById('uniqueVisitorsCount');
+        const totalDuaaEl = document.getElementById('totalDuaaCount');
         const duaaBtn = document.getElementById('duaaBtn');
         const duaaBtnText = document.getElementById('duaaBtnText');
+
         let isSending = false;
+        let isFetching = false;
+        let protectTimer = null;
+
+        // القيم المحلية (Optimistic UI)
+        let localVisitors = 0;
+        let localTotalDuaa = 0;
 
         const ad3iya = [
             "اللَّهُمَّ اغْفِرْ لَهُ وَارْحَمْهُ، وَعَافِهِ وَاعْفُ عَنْهُ، وَأَكْرِمْ نُزُلَهُ، وَوَسِّعْ مُدْخَلَهُ",
@@ -484,34 +524,83 @@
             "اللَّهُمَّ تَقَبَّلْهُ فِي الشُّهَدَاءِ، وَاجْعَلْهُ فِي أَعْلَى دَرَجَاتِ الْجَنَّةِ"
         ];
 
-        async function fetchGlobalCount() {
+        function fetchWithTimeout(url, timeout = 8000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeout);
+            return fetch(url, { signal: controller.signal })
+                .finally(() => clearTimeout(timer));
+        }
+
+        async function fetchCounter(key) {
             try {
-                const res = await fetch(`${ABACUS_BASE}/get/${ABACUS_NAMESPACE}/${ABACUS_KEY}`);
+                const res = await fetchWithTimeout(`${ABACUS_BASE}/get/${ABACUS_NAMESPACE}/${key}`);
                 if (!res.ok) {
-                    if (res.status === 404) { updateGlobalCountDisplay(0); return; }
-                    throw new Error(`HTTP ${res.status}`);
+                    if (res.status === 404) return 0;
+                    return null;
                 }
                 const data = await res.json();
-                updateGlobalCountDisplay(data.value ?? 0);
+                return data.value ?? 0;
             } catch (e) {
-                console.error('فشل جلب العداد:', e);
-                globalCountEl.textContent = '—';
+                console.warn('فشل جلب العداد:', key);
+                return null;
             }
         }
 
-        function updateGlobalCountDisplay(value) {
-            globalCountEl.textContent = Number(value).toLocaleString('ar-EG');
-            globalCountEl.classList.remove('counter-pop');
-            void globalCountEl.offsetWidth;
-            globalCountEl.classList.add('counter-pop');
+        async function hitCounter(key) {
+            const res = await fetchWithTimeout(`${ABACUS_BASE}/hit/${ABACUS_NAMESPACE}/${key}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            return data.value ?? 0;
         }
 
+        function updateCounterDisplay(el, value) {
+            if (value === null || value === undefined) return;
+            el.textContent = Number(value).toLocaleString('ar-EG');
+            el.classList.remove('counter-pop');
+            void el.offsetWidth;
+            el.classList.add('counter-pop');
+        }
+
+        function updateBothCounters(visitors, totalDuaa) {
+            if (visitors !== null && visitors !== undefined) {
+                localVisitors = visitors;
+                updateCounterDisplay(uniqueVisitorsEl, visitors);
+            }
+            if (totalDuaa !== null && totalDuaa !== undefined) {
+                localTotalDuaa = totalDuaa;
+                updateCounterDisplay(totalDuaaEl, totalDuaa);
+            }
+        }
+
+        async function fetchBothCounters() {
+            if (isFetching) return;
+            isFetching = true;
+            try {
+                const [visitors, totalDuaa] = await Promise.all([
+                    fetchCounter(VISITORS_KEY),
+                    fetchCounter(DUAA_KEY)
+                ]);
+                updateBothCounters(visitors, totalDuaa);
+            } finally {
+                isFetching = false;
+            }
+        }
+
+        function isVisitorRegistered() {
+            return localStorage.getItem(VISITOR_FLAG_KEY) === 'true';
+        }
+
+        function markVisitorRegistered() {
+            localStorage.setItem(VISITOR_FLAG_KEY, 'true');
+        }
+
+        // ✅ إرسال دعاء — استجابة فورية لكلا العدادين
         async function sendDuaa() {
-            if (isSending) return; // حماية مزدوجة
+            if (isSending) return;
             isSending = true;
             duaaBtn.disabled = true;
-            duaaBtnText.textContent = 'جارٍ الاحتساب...';
 
+            // 1) تغيير الدعاء فوراً
             const randomIndex = Math.floor(Math.random() * ad3iya.length);
             const duaaTextEl = document.getElementById('duaaText');
             duaaTextEl.style.opacity = '0';
@@ -520,25 +609,64 @@
                 duaaTextEl.style.opacity = '1';
             }, 200);
 
-            try {
-                const res = await fetch(`${ABACUS_BASE}/hit/${ABACUS_NAMESPACE}/${ABACUS_KEY}`);
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const data = await res.json();
-                updateGlobalCountDisplay(data.value ?? 0);
-                duaaBtnText.textContent = 'تقبل الله 🤲';
-                setTimeout(() => { duaaBtnText.textContent = 'ادعُ له الآن'; }, 2000);
-            } catch (e) {
-                console.error('فشل إرسال الدعاء:', e);
-                duaaBtnText.textContent = 'حدث خطأ، حاول مجدداً';
-                setTimeout(() => { duaaBtnText.textContent = 'ادعُ له الآن'; }, 2000);
-            } finally {
+            // 2) إظهار "تقبل الله" فوراً
+            duaaBtnText.textContent = 'تقبل الله 🤲';
+            duaaBtn.classList.add('duaa-success');
+
+            // 3) ✅ تحديث تفاؤلي فوري — الرقمان يزيدان معاً في الشاشة
+            const willRegister = !isVisitorRegistered();
+            const optimisticVisitors = localVisitors + (willRegister ? 1 : 0);
+            const optimisticTotalDuaa = localTotalDuaa + 1;
+            updateBothCounters(optimisticVisitors, optimisticTotalDuaa);
+
+            // 4) ⏱️ حماية الزر ثانيتين (مستقلة عن الشبكة)
+            if (protectTimer) clearTimeout(protectTimer);
+            protectTimer = setTimeout(() => {
+                duaaBtnText.textContent = 'ادعُ له الآن';
+                duaaBtn.classList.remove('duaa-success');
+                duaaBtn.disabled = false;
                 isSending = false;
-                duaaBtn.disabled = false; // الزر يعود دائماً
+                protectTimer = null;
+            }, 2000);
+
+            // 5) ✅ مزامنة السيرفر بالتوازي (أسرع بمرتين)
+            try {
+                const requests = [hitCounter(DUAA_KEY)];
+                if (willRegister) {
+                    requests.push(hitCounter(VISITORS_KEY));
+                }
+                const results = await Promise.allSettled(requests);
+
+                // استخراج النتائج
+                let newTotalDuaa = null;
+                let newVisitors = null;
+
+                if (results[0].status === 'fulfilled') {
+                    newTotalDuaa = results[0].value;
+                }
+                if (willRegister && results[1] && results[1].status === 'fulfilled') {
+                    newVisitors = results[1].value;
+                    markVisitorRegistered();
+                }
+
+                // تحديث بالقيم الحقيقية
+                updateBothCounters(newVisitors, newTotalDuaa);
+
+            } catch (e) {
+                console.warn('فشل مزامنة الدعاء:', e);
             }
         }
 
-        fetchGlobalCount();
-        setInterval(fetchGlobalCount, 30000);
+        // جلب أولي فوري
+        fetchBothCounters();
+
+        // ✅ تحديث دوري كل 15 ثانية (أسرع)
+        setInterval(fetchBothCounters, 15000);
+
+        // تحديث عند العودة للتبويب
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) fetchBothCounters();
+        });
 
         // ========== عداد الفاتحة المحلي ==========
         let counter = parseInt(localStorage.getItem('fatiha_counter') || '0');
